@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from components import skill_card
 
 # Load dataset
 df = pd.read_csv("cs_students.csv")
@@ -7,7 +8,7 @@ df = pd.read_csv("cs_students.csv")
 # Skill strength mapping
 skill_strength = {"Weak": 1, "Average": 2, "Strong": 3}
 
-# Define career requirements
+# Career skill requirements
 career_skills = {
     "Machine Learning Researcher": {"Python": 3, "SQL": 2, "Java": 1},
     "Data Scientist": {"Python": 3, "SQL": 3, "Java": 1},
@@ -20,74 +21,79 @@ career_skills = {
     "Mobile App Developer": {"Python": 2, "SQL": 1, "Java": 3},
 }
 
-# --- UI ---
+# Load custom CSS
+def local_css(file_name):
+    with open(file_name) as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
+local_css("styles.css")
+
+# App Title
 st.title("AI Mentor: Skill Gap Analyzer")
-st.markdown("Personalized career readiness assessment for CS students.")
-st.markdown("---")
 
-# Select student
+# Sidebar Help
+st.sidebar.header("AI Mentor Help")
+st.sidebar.markdown(
+    """
+- Select your name.
+- Click **Analyze My Skills**.
+- Review skill gaps and readiness score.
+- Focus on suggested improvements.
+"""
+)
+
+# User Selection
 name = st.selectbox("Select Your Name", df["Name"].unique())
 
-# Initialize session state for analysis
-if 'analyze' not in st.session_state:
+# Analyze Button
+if "analyze" not in st.session_state:
     st.session_state.analyze = False
-    st.session_state.selected_name = None
 
 if st.button("Analyze My Skills"):
     st.session_state.analyze = True
-    st.session_state.selected_name = name
 
-# Show results only after clicking analyze
-if st.session_state.analyze and st.session_state.selected_name:
-    student = df[df["Name"] == st.session_state.selected_name].iloc[0]
+# Analysis Output
+if st.session_state.analyze:
+    student = df[df["Name"] == name].iloc[0]
     role = student["Future Career"]
-    st.header(f"Career Goal: {role}")
+    st.markdown(f'<h2 class="career-goal">Career Goal: {role}</h2>', unsafe_allow_html=True)
 
     required = career_skills.get(role, {})
-    total_skills = len(required)
+    st.markdown('<div class="skill-gap-report">', unsafe_allow_html=True)
 
-    # Calculate skill readiness score
-    skill_score = 0
-    for skill, req_level in required.items():
+    score = 0
+    total = len(required)
+
+    for skill, required_level in required.items():
         student_level = skill_strength.get(student[skill], 0)
-        if student_level >= req_level:
-            skill_score += 1
-    readiness = round((skill_score / total_skills) * 100)
+        if student_level >= required_level:
+            score += 1
+        skill_card(skill, student_level, required_level)
 
-    # GPA score
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Readiness score
+    readiness = round((score / total) * 100)
     gpa_score = (student["GPA"] / 4.0) * 100
-
-    # Combined final score
     combined_score = round((readiness * 0.7) + (gpa_score * 0.3), 2)
 
-    # Show summary cards
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Skill Readiness", f"{readiness}%")
-    col2.metric("GPA Score", f"{round(gpa_score, 2)}%")
-    col3.metric("Final Score", f"{combined_score}%")
-
-    st.markdown("---")
-    st.progress(combined_score / 100)
-
-    # Skill gap details in expander
-    with st.expander("View Skill Gap Details"):
-        for skill, req_level in required.items():
-            student_level = skill_strength.get(student[skill], 0)
-            level_display = f"{student[skill]} ({student_level}/3)"
-            req_display = f"{req_level}/3"
-
-            if student_level >= req_level:
-                st.markdown(f"<span style='color:green;'>{skill}: Meets requirement ({level_display})</span>", unsafe_allow_html=True)
-            else:
-                st.markdown(f"<span style='color:orange;'>{skill}: Needs improvement. Required: {req_display}, Yours: {level_display}</span>", unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    # Final message based on combined score
     if combined_score >= 85:
-        st.success("Outstanding performance! You're ready.")
+        status = "Outstanding! You're more than ready."
+        card_class = "score-success"
     elif combined_score >= 70:
-        st.info("Good progress! A few improvements needed.")
+        status = "Good job! A few touch-ups and you’re ready."
+        card_class = "score-warning"
     else:
-        st.warning("Focus on improving both GPA and skills.")
+        status = "Focus on improving both GPA and skills."
+        card_class = "score-fail"
+
+    score_html = f"""
+    <div class="score-card {card_class}">
+        <h3>Final Readiness Score: {combined_score}%</h3>
+        <p>{status}</p>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width:{combined_score}%"></div>
+        </div>
+    </div>
+    """
+    st.markdown(score_html, unsafe_allow_html=True)

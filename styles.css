@@ -1,0 +1,138 @@
+/* General font and background */
+body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6f8;
+    color: #212529;
+}
+
+/* Header */
+.career-goal {
+    color: #1d3557;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+/* Skill Gap Report container */
+.skill-gap-report {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 48px;
+    padding: 0 20px;
+}
+
+/* Skill Card */
+.skill-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    width: 280px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-left: 6px solid transparent;
+    flex-shrink: 0;
+}
+.skill-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+}
+
+.skill-good {
+    border-left-color: #28a745;
+}
+.skill-improve {
+    border-left-color: #e76f51;
+}
+
+.skill-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #0b3d91;
+    margin-bottom: 10px;
+}
+.skill-level {
+    font-size: 0.95rem;
+    color: #555;
+    margin-bottom: 14px;
+}
+
+/* Progress bar */
+.progress-bar {
+    background: #e1e5ea;
+    border-radius: 50px;
+    height: 12px;
+    width: 100%;
+    overflow: hidden;
+}
+.progress-fill {
+    height: 100%;
+    transition: width 0.5s ease;
+    border-radius: 50px;
+}
+.progress-fill.good {
+    background: #28a745;
+}
+.progress-fill.improve {
+    background: #e76f51;
+}
+
+/* Score Card */
+.score-card {
+    max-width: 380px;
+    margin: 0 auto 40px auto;
+    padding: 20px 24px;
+    border-radius: 16px;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 500;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.score-success {
+    background: #2a9d8f;
+    color: #ffffff;
+}
+.score-warning {
+    background: #f4a261;
+    color: #212529;
+}
+.score-fail {
+    background: #e63946;
+    color: #ffffff;
+}
+
+.score-card h3 {
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+}
+
+.score-card .progress-bar {
+    background: rgba(255, 255, 255, 0.4);
+    margin-top: 12px;
+    height: 14px;
+}
+.score-card .progress-fill {
+    background: #ffffff !important;
+}
+
+/* Button */
+.stButton > button {
+    background: linear-gradient(90deg, #1e3a8a, #2563eb);
+    color: white !important;
+    font-weight: 700;
+    padding: 12px 32px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    border: none;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.45);
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+.stButton > button:hover {
+    background: linear-gradient(90deg, #1e40af, #3b82f6);
+    transform: scale(1.03);
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.65);
+}
