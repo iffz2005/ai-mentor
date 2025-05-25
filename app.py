@@ -3,7 +3,7 @@ import pandas as pd
 
 # Load dataset
 df = pd.read_csv("cs_students.csv")
-st.dataframe(df)
+# st.dataframe(df)
 
 # Convert skill levels to numbers
 skill_strength = {"Weak": 1, "Average": 2, "Strong": 3}
@@ -23,39 +23,49 @@ career_skills = {
 
 # UI
 st.title("🤖 AI Mentor: Skill Gap Analyzer")
-st.markdown("Select your name to find out if you're ready for your dream job!")
+st.markdown("Welcome to your personalized career readiness check! 🎓")
 
-name = st.selectbox("Select Your Name", df["Name"].unique())
+st.divider()
+name = st.selectbox("👤 Select Your Name", df["Name"].unique())
 
-if st.button("Analyze Skills"):
+if 'analyze' not in st.session_state:
+    st.session_state.analyze = False
+
+if st.button("🔍 Analyze My Skills"):
+    st.session_state.analyze = True
+
+if st.session_state.analyze:
     student = df[df["Name"] == name].iloc[0]
     role = student["Future Career"]
-    st.subheader(f"🎯 Career Goal: {role}")
-    
+    st.subheader(f"🎯 Career Goal: `{role}`")
+
     required = career_skills.get(role, {})
-    
-    gap_report = []
+
+    st.divider()
+    st.markdown("### 📊 Skill Gap Report")
     score = 0
     total = len(required)
-    
+
     for skill, required_level in required.items():
         student_level = skill_strength.get(student[skill], 0)
+        level_display = f"{student[skill]} ({student_level}/3)"
+        required_display = f"{required_level}/3"
+        
+        # Color code based on status
         if student_level >= required_level:
-            result = "✅ OK"
+            st.success(f"✅ **{skill}**: You’re good! ({level_display})")
             score += 1
         else:
-            result = f"❌ Improve to level {required_level}"
-        gap_report.append((skill, student[skill], result))
-    
-    st.write(f"📊 **Placement Readiness Score: {round((score/total)*100)}%**")
-    
-    st.markdown("### 🔍 Skill Feedback")
-    for skill, level, result in gap_report:
-        st.write(f"**{skill}**: {level} → {result}")
-    
+            st.warning(f"⚠️ **{skill}**: Needs improvement → required: {required_display}, yours: {level_display}")
+
+    st.divider()
+    readiness = round((score / total) * 100)
+    st.markdown(f"### 🎯 Placement Readiness Score: **{readiness}%**")
+
     if score == total:
-        st.success("You're ready! 🚀 Just polish your projects and resume.")
+        st.success("🚀 You're ready to apply! Just polish your resume and go get that job!")
     elif score >= total * 0.6:
-        st.warning("You're on the right track, just a bit more practice inshaAllah.")
+        st.info("✨ You’re almost there! A bit more practice and you’ll shine inshaAllah.")
     else:
-        st.error("You need to strengthen key skills before applying.")
+        st.error("📚 Focus on improving core skills before applying.")
+
