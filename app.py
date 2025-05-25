@@ -3,12 +3,11 @@ import pandas as pd
 
 # Load dataset
 df = pd.read_csv("cs_students.csv")
-# st.dataframe(df)
 
-# Convert skill levels to numbers
+# Skill strength mapping
 skill_strength = {"Weak": 1, "Average": 2, "Strong": 3}
 
-# Define what each career requires
+# Define career requirements
 career_skills = {
     "Machine Learning Researcher": {"Python": 3, "SQL": 2, "Java": 1},
     "Data Scientist": {"Python": 3, "SQL": 3, "Java": 1},
@@ -21,51 +20,74 @@ career_skills = {
     "Mobile App Developer": {"Python": 2, "SQL": 1, "Java": 3},
 }
 
-# UI
-st.title("🤖 AI Mentor: Skill Gap Analyzer")
-st.markdown("Welcome to your personalized career readiness check! 🎓")
+# --- UI ---
 
-st.divider()
-name = st.selectbox("👤 Select Your Name", df["Name"].unique())
+st.title("AI Mentor: Skill Gap Analyzer")
+st.markdown("Personalized career readiness assessment for CS students.")
+st.markdown("---")
 
+# Select student
+name = st.selectbox("Select Your Name", df["Name"].unique())
+
+# Initialize session state for analysis
 if 'analyze' not in st.session_state:
     st.session_state.analyze = False
+    st.session_state.selected_name = None
 
-if st.button("🔍 Analyze My Skills"):
+if st.button("Analyze My Skills"):
     st.session_state.analyze = True
+    st.session_state.selected_name = name
 
-if st.session_state.analyze:
-    student = df[df["Name"] == name].iloc[0]
+# Show results only after clicking analyze
+if st.session_state.analyze and st.session_state.selected_name:
+    student = df[df["Name"] == st.session_state.selected_name].iloc[0]
     role = student["Future Career"]
-    st.subheader(f"🎯 Career Goal: `{role}`")
+    st.header(f"Career Goal: {role}")
 
     required = career_skills.get(role, {})
+    total_skills = len(required)
 
-    st.divider()
-    st.markdown("### 📊 Skill Gap Report")
-    score = 0
-    total = len(required)
-
-    for skill, required_level in required.items():
+    # Calculate skill readiness score
+    skill_score = 0
+    for skill, req_level in required.items():
         student_level = skill_strength.get(student[skill], 0)
-        level_display = f"{student[skill]} ({student_level}/3)"
-        required_display = f"{required_level}/3"
-        
-        # Color code based on status
-        if student_level >= required_level:
-            st.success(f"✅ **{skill}**: You’re good! ({level_display})")
-            score += 1
-        else:
-            st.warning(f"⚠️ **{skill}**: Needs improvement → required: {required_display}, yours: {level_display}")
+        if student_level >= req_level:
+            skill_score += 1
+    readiness = round((skill_score / total_skills) * 100)
 
-    st.divider()
-    readiness = round((score / total) * 100)
-    st.markdown(f"### 🎯 Placement Readiness Score: **{readiness}%**")
+    # GPA score
+    gpa_score = (student["GPA"] / 4.0) * 100
 
-    if score == total:
-        st.success("🚀 You're ready to apply! Just polish your resume and go get that job!")
-    elif score >= total * 0.6:
-        st.info("✨ You’re almost there! A bit more practice and you’ll shine inshaAllah.")
+    # Combined final score
+    combined_score = round((readiness * 0.7) + (gpa_score * 0.3), 2)
+
+    # Show summary cards
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Skill Readiness", f"{readiness}%")
+    col2.metric("GPA Score", f"{round(gpa_score, 2)}%")
+    col3.metric("Final Score", f"{combined_score}%")
+
+    st.markdown("---")
+    st.progress(combined_score / 100)
+
+    # Skill gap details in expander
+    with st.expander("View Skill Gap Details"):
+        for skill, req_level in required.items():
+            student_level = skill_strength.get(student[skill], 0)
+            level_display = f"{student[skill]} ({student_level}/3)"
+            req_display = f"{req_level}/3"
+
+            if student_level >= req_level:
+                st.markdown(f"<span style='color:green;'>{skill}: Meets requirement ({level_display})</span>", unsafe_allow_html=True)
+            else:
+                st.markdown(f"<span style='color:orange;'>{skill}: Needs improvement. Required: {req_display}, Yours: {level_display}</span>", unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # Final message based on combined score
+    if combined_score >= 85:
+        st.success("Outstanding performance! You're ready.")
+    elif combined_score >= 70:
+        st.info("Good progress! A few improvements needed.")
     else:
-        st.error("📚 Focus on improving core skills before applying.")
-
+        st.warning("Focus on improving both GPA and skills.")
